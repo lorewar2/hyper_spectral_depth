@@ -10,6 +10,71 @@ import h5py
 from model import SpectralModel
 
 def main():
+    #plot_depth_csv('depth_per_pixel.csv', drange=[-3, -2.5])
+    #plot_depth_csv('depth_per_pixel.csv', drange=[-2.5, -2.0])
+    plot_depth_csv('depth_per_pixel.csv', drange=[-2, -1.5])
+    plot_depth_csv('depth_per_pixel.csv', drange=[-1.5, -1])
+    plot_depth_csv('depth_per_pixel.csv', drange=[-1, -0.5])
+    plot_depth_csv('depth_per_pixel.csv', drange=[-0.5, 0])
+    plot_depth_csv('depth_per_pixel.csv', drange=[0, 0.3])
+    plot_depth_csv('depth_per_pixel.csv', drange=[0.3, 0.6])
+    #plot_depth_csv('depth_per_pixel.csv', drange=[0.6, 0.9])
+    #plot_depth_csv('depth_per_pixel.csv', drange=[1, 1.5])
+    #plot_depth_csv('depth_per_pixel.csv', drange=[1.5, 2.0])
+    #plot_depth_csv('depth_per_pixel.csv', drange=[2.0, 2.5])
+    return
+
+def plot_depth_csv(csv_path, drange=None, invert=False,
+                   vmin=None, vmax=None, cmap='viridis',
+                   save_path=None, title=None):
+    """
+    Load a per-pixel depth CSV (columns: row, col, depth) and plot the depth map.
+
+    drange : (lo, hi) or None
+        If given, only pixels whose depth is within [lo, hi] are shown in color;
+        all other pixels are greyed out (but still drawn). Set invert=True to
+        flip it: grey out the [lo, hi] band and show everything else.
+    vmin, vmax : color-scale limits (default: autoscale on the shown pixels)
+    cmap       : matplotlib colormap name
+    save_path  : if given, save the figure there
+    """
+    # --- load ---
+    data = np.loadtxt(csv_path, delimiter=',', skiprows=1)   # row, col, depth
+    rows = data[:, 0].astype(int)
+    cols = data[:, 1].astype(int)
+    depth = data[:, 2]
+
+    # --- rebuild the image grid (order-independent) ---
+    nR, nC = rows.max() + 1, cols.max() + 1
+    grid = np.full((nR, nC), np.nan)
+    grid[rows, cols] = depth
+
+    # --- apply the depth-range filter ---
+    disp = grid.copy()
+    if drange is not None:
+        lo, hi = drange
+        in_range = (grid >= lo) & (grid <= hi)
+        keep = ~in_range if invert else in_range
+        disp = np.where(keep, grid, np.nan)       # dropped pixels -> nan (greyed)
+
+    # --- plot ---
+    cmap_obj = plt.get_cmap(cmap).copy()
+    cmap_obj.set_bad('lightgrey')                 # masked / missing pixels
+    fig, ax = plt.subplots(figsize=(5, 5))
+    im = ax.imshow(disp, cmap=cmap_obj, vmin=vmin, vmax=vmax)
+    fig.colorbar(im, ax=ax, label='latent depth  z = f_S(x, y)')
+    if title is None:
+        title = ('Depth map' if drange is None else
+                 f'Depth {"outside" if invert else "within"} [{drange[0]}, {drange[1]}]')
+    ax.set_title(title)
+    ax.axis('off')
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150)
+    plt.show()
+    return disp
+
+def test():
     # data loading
     set_seeds(0)
     file_path       = "./data/Plant1_L1_13.dspkd"
@@ -64,13 +129,20 @@ def main():
     # train
     model, loss_list = train(
         S, A,
-        S_hidden_list=[1024, 1024, 1024], A_hidden_list=[2048, 2048, 2048], latent_dim=1,
-        epochs=10_000, batch_size=None, optim='adam', lr=1e-3, seed=0,
+        S_hidden_list=[2560, 2560, 2560, 2560], A_hidden_list=[2560, 2560, 2560, 2560], latent_dim=1,
+        epochs=50_000, batch_size=None, optim='adam', lr=1e-4, seed=0,
     )
 
-    # depth
+   # depth
     depth = get_depth(model, S)[:, 0]            # (N,)
     depth_img = depth.reshape(nRows, nCols)      # C-order, matches how A_raw/S_raw were built
+
+    # ---- save depth for each pixel to CSV ----
+    # S_raw[:, 0] = col (x), S_raw[:, 1] = row (y); same pixel order as `depth`
+    out = np.column_stack([S_raw[:, 1], S_raw[:, 0], depth])   # row, col, depth
+    np.savetxt('depth_per_pixel.csv', out, delimiter=',',
+               header='row,col,depth', comments='', fmt=['%d', '%d', '%.8f'])
+    print(f'wrote depth_per_pixel.csv  ({out.shape[0]} pixels)')
 
     # plot
     plt.figure(figsize=(5, 5))
