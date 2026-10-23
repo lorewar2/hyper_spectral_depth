@@ -10,14 +10,15 @@ import h5py
 from model import SpectralModel
 
 def main():
+    test()
     #plot_depth_csv('depth_per_pixel.csv', drange=[-3, -2.5])
     #plot_depth_csv('depth_per_pixel.csv', drange=[-2.5, -2.0])
-    plot_depth_csv('depth_per_pixel.csv', drange=[-2, -1.5])
-    plot_depth_csv('depth_per_pixel.csv', drange=[-1.5, -1])
-    plot_depth_csv('depth_per_pixel.csv', drange=[-1, -0.5])
-    plot_depth_csv('depth_per_pixel.csv', drange=[-0.5, 0])
-    plot_depth_csv('depth_per_pixel.csv', drange=[0, 0.3])
-    plot_depth_csv('depth_per_pixel.csv', drange=[0.3, 0.6])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[-2, -1.5])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[-1.5, -1])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[-1, -0.5])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[-0.5, 0])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[0, 0.3])
+    # plot_depth_csv('depth_per_pixel.csv', drange=[0.3, 0.6])
     #plot_depth_csv('depth_per_pixel.csv', drange=[0.6, 0.9])
     #plot_depth_csv('depth_per_pixel.csv', drange=[1, 1.5])
     #plot_depth_csv('depth_per_pixel.csv', drange=[1.5, 2.0])
@@ -130,7 +131,7 @@ def test():
     model, loss_list = train(
         S, A,
         S_hidden_list=[2560, 2560, 2560, 2560], A_hidden_list=[2560, 2560, 2560, 2560], latent_dim=1,
-        epochs=50_000, batch_size=None, optim='adam', lr=1e-4, seed=0,
+        epochs=50_000, batch_size=1000, optim='adam', lr=1e-4, seed=0
     )
 
    # depth
