@@ -131,7 +131,7 @@ def test():
     model, loss_list = train(
         S, A,
         S_hidden_list=[2560, 2560, 2560, 2560], A_hidden_list=[2560, 2560, 2560, 2560], latent_dim=1,
-        epochs=50_000, batch_size=1000, optim='adam', lr=1e-4, seed=0
+        epochs=50_000, batch_size=None, optim='adam', lr=1e-4, seed=0
     )
 
    # depth

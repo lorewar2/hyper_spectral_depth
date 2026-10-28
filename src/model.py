@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-##################################################################################
+#######################gg###########################################################
 # Coordinate -> spectrum network (adapted from the gene-expression `hsd` model).
 #   input:  (x, y) pixel coordinate        in R^2
 #   output: spectrum (C spectral channels) in R^C
